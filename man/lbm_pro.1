@@ -1,0 +1,132 @@
+.TH LBM_PRO 1 "October 2026" "wind-tunnel-2d" "User Commands"
+.SH NAME
+lbm_pro \- validated 2D lattice-Boltzmann solver with interactive window
+.SH SYNOPSIS
+.B lbm_pro
+.SH DESCRIPTION
+.B lbm_pro
+fuses the validated solver core from
+.BR lbm_bench (1)
+(TRT collision, Bouzidi curved walls, Guo 2nd-order in/outflow,
+q-consistent Mei-Luo-Shyy momentum exchange) into the interactive SDL
+shell of
+.BR lbm_tunnel (1).
+It is
+.BR "cylinder-only faithful" :
+it runs exactly one configuration, straight duct with a circular cylinder,
+because that is the only setup the Bouzidi curved wall is validated for.
+The
+.B G
+(geometry cycle) and
+.B O
+(obstacle cycle) keys from
+.BR lbm_tunnel (1)
+are deliberately absent, and
+.BR LB_GEOM / LB_OBS
+environment overrides are ignored.
+.PP
+Live Cd and Cl (q-consistent momentum exchange, EMA-smoothed) appear on
+the HUD once the EMA warms up (~2000 steps). An optional Smagorinsky LES
+closure extends the stable range past the laminar ceiling at the cost of
+not being benchmark-validated.
+.SH CONTROLS
+Keyboard controls track
+.BR lbm_tunnel (1)
+where they map, except:
+.TP
+.B "G, O, C"
+Removed. The configuration is fixed.
+.TP
+.B +\~/\~\(mi\~/\~0
+Grow/shrink/reset the
+.I cylinder
+size (still a circle, still gets Bouzidi, still faithful).
+.TP
+.B K
+Toggle Smagorinsky LES (Cs = 0.17). Needed only above about Re = 250
+where the laminar scheme fails. The HUD annotates
+.B +LES (unvalidated).
+.TP
+.B P
+Transient symmetry-breaking seed (as in
+.BR lbm_tunnel (1)).
+.TP
+.B F
+Speed/vorticity colouring.
+.TP
+.B V
+MP4 recording (writes
+.BR lbm_pro_<timestamp>.mp4 ).
+.SH ENVIRONMENT
+.TP
+.B LB_SELFTEST=1
+Run headless. Reports mean velocity, mass conservation, Cd (mean), Cl
+(mean/amplitude/rms), St (from Cl zero-crossings), and solver status.
+.TP
+.B "LB_STEPS LB_MACH LB_TAU LB_PERTURB"
+Overrides.
+.BR LB_GEOM / LB_OBS
+are deliberately
+.B not
+honoured.
+.TP
+.B LB_SMAG
+Smagorinsky Cs. 0 disables (default); 0.14-0.18 are typical if enabling.
+.TP
+.B LB_CSV=path
+Write per-step time series (step, probe uy, Cd, Cl) to
+.IR path .
+Analysable via
+.BR tools/analyze.py .
+.TP
+.B LB_CP=path
+Write azimuthal
+.IR "C_p(theta)"
+around the cylinder (theta = 0 at upstream stagnation) to
+.IR path .
+Textbook comparison with Henderson-Williamson curves.
+.SH EXAMPLES
+.PP
+Watch, with symmetry-breaking seed to trigger shedding:
+.PP
+.RS
+.B ./lbm_pro
+.RE
+.PP
+(then press P to seed the wake)
+.PP
+Headless, dump time series and
+.IR C_p :
+.PP
+.RS
+.B LB_SELFTEST=1 LB_STEPS=4000 LB_MACH=0.10 LB_PERTURB=1 \\
+.br
+.B LB_CSV=ts.csv LB_CP=cp.csv ./lbm_pro
+.br
+.B python3 tools/analyze.py both ts.csv cp.csv
+.RE
+.PP
+LES-on stress test above the laminar BGK ceiling:
+.PP
+.RS
+.B LB_SELFTEST=1 LB_MACH=0.40 LB_PERTURB=1 LB_SMAG=0.17 LB_STEPS=3000 \\
+.br
+.B ./lbm_pro
+.RE
+.SH FILES
+.TP
+.B lbm_pro_<ISO-timestamp>.mp4
+Written when
+.B V
+is pressed.
+.SH SEE ALSO
+.BR wind_tunnel (1),
+.BR lbm_tunnel (1),
+.BR lbm_bench (1)
+.SH NOTES
+"Validated" transfers to
+.B lbm_pro
+because the cylinder path is the same code
+.BR lbm_bench (1)
+reproduced Schaefer-Turek 2D-2 with. The LES closure, when enabled, is
+standard but not benchmark-validated.

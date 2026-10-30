@@ -1,0 +1,119 @@
+.TH WIND_TUNNEL 1 "October 2026" "wind-tunnel-2d" "User Commands"
+.SH NAME
+wind_tunnel \- 2D molecular-dynamics wind tunnel
+.SH SYNOPSIS
+.B wind_tunnel
+.SH DESCRIPTION
+.B wind_tunnel
+is a particle-based 2D wind tunnel. A gas of soft-repulsive discs is injected
+from the left through a kinetic-flux boundary condition, flows through a
+shaped channel past an obstacle, and exits on the right. Forces are
+integrated with velocity-Verlet using a cell-list + Verlet neighbor list.
+The particles are not true hard spheres but the WCA pseudo-hard-sphere
+potential (Weeks-Chandler-Andersen), which has a well-defined speed of
+sound and so a physically meaningful Mach number.
+.PP
+Reduced LJ units throughout:
+.BR "sigma = m = epsilon = k_B = 1" .
+Tunnel is 320 sigma long by 100 sigma tall.
+.SH CONTROLS
+.TP
+.B SPACE
+Start/stop (start reseeds the gas).
+.TP
+.B P
+Pause/resume.
+.TP
+.B V
+Toggle MP4 recording (writes
+.BR wind_tunnel_<timestamp>.mp4 ).
+Requires
+.B ffmpeg
+on PATH.
+.TP
+.B R
+Reset.
+.TP
+.B G
+Cycle tunnel geometry (straight, de-Laval nozzle, venturi, diffuser,
+transonic bump).
+.TP
+.B O
+Cycle preset obstacle (none, cylinder, flat plate, wedge, NACA-0015 wing).
+.TP
+.B +\~/\~\(mi
+Grow/shrink the preset obstacle.
+.TP
+.B 0
+Reset preset obstacle to default size.
+.TP
+.B C
+Clear all obstacles (preset and hand-placed).
+.TP
+.B [\~/\~]
+Physics substeps per frame (1-40).
+.TP
+.B F
+Flow-field view: particles -> field+particles -> field+arrows.
+.TP
+.B M
+Render mode: points vs filled discs.
+.TP
+.B L
+Toggle legend.
+.TP
+.B H
+Toggle HUD.
+.TP
+.B Mouse
+Wheel = zoom; right/middle-drag = pan; left-click = drop a circular
+obstacle; left-drag on a slider = adjust it.
+.TP
+.B ESC, Q
+Quit.
+.SH ENVIRONMENT
+Headless self-test mode (no window):
+.TP
+.B WT_SELFTEST=1
+Run headless.
+.TP
+.B WT_STEPS
+Number of steps (default 600).
+.TP
+.B "WT_GEOM WT_OBS WT_OBSCALE"
+Geometry/obstacle preset and scale (integers; see README).
+.TP
+.B "WT_DENS WT_MACH WT_TEMP"
+Density, Mach, temperature overrides.
+.TP
+.B "WT_ADDOBS_AT WT_ADDOBS"
+Insert an obstacle at a given step (as the
+.B O
+key does).
+.SH EXAMPLES
+.PP
+Watch:
+.PP
+.RS
+.B ./wind_tunnel
+.RE
+.PP
+Headless cylinder stability check at Mach 2 (standing shock, should hold):
+.PP
+.RS
+.B WT_SELFTEST=1 WT_GEOM=0 WT_OBS=1 WT_MACH=2.0 WT_STEPS=3000 ./wind_tunnel
+.RE
+.SH FILES
+.TP
+.B wind_tunnel_<ISO-timestamp>.mp4
+Written when
+.B V
+is pressed.
+.SH SEE ALSO
+.BR lbm_tunnel (1),
+.BR lbm_pro (1),
+.BR lbm_bench (1)
+.SH NOTES
+True hard spheres require an event-driven scheduler (incompatible with
+fixed-step integration); the WCA pseudo-hard-sphere model used here is
+the standard MD resolution.

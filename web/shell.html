@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>wind-tunnel-2d</title>
+<style>
+  :root {
+    --bg: #0d1115; --fg: #d7dadf; --dim: #8a929b; --accent: #70a0ff;
+    --card: #161b22;
+  }
+  html, body {
+    background: var(--bg); color: var(--fg); margin: 0; padding: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Text",
+                 "Helvetica Neue", Arial, sans-serif;
+  }
+  header {
+    padding: 12px 20px; border-bottom: 1px solid #1f252d;
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  header a { color: var(--accent); text-decoration: none; font-size: 13px; }
+  header a:hover { text-decoration: underline; }
+  main {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 16px;
+  }
+  #canvas {
+    display: block; background: #000;
+    width: min(1280px, 100vw);
+    max-width: 100%; height: auto;
+    image-rendering: pixelated;
+    border: 1px solid #1f252d;
+  }
+  #status {
+    margin-top: 10px; color: var(--dim); font-size: 13px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    min-height: 1.5em;
+  }
+  details { margin-top: 12px; max-width: 1280px; width: 100%; color: var(--dim); font-size: 13px; }
+  details summary { cursor: pointer; color: var(--fg); }
+  details p, details pre { margin: 6px 0; }
+  kbd { background:#1f252d; border:1px solid #2a323c; padding:1px 5px;
+        border-radius:3px; font-family: ui-monospace, Menlo, monospace;
+        font-size: 11px; color: var(--fg); }
+</style>
+</head>
+<body>
+<header>
+  <h1>wind-tunnel-2d</h1>
+  <a href="./">index</a>
+  <a href="./lbm_tunnel.html">lbm_tunnel (BGK toy)</a>
+  <a href="./lbm_pro.html">lbm_pro (validated TRT)</a>
+</header>
+<main>
+  <canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+  <div id="status">loading WASM...</div>
+  <details>
+    <summary>controls</summary>
+    <p>Click the canvas first so it has keyboard focus.</p>
+    <p>
+      <kbd>Space</kbd> run/stop &nbsp;
+      <kbd>R</kbd> reset &nbsp;
+      <kbd>P</kbd> seed wake &nbsp;
+      <kbd>F</kbd> speed/vorticity &nbsp;
+      <kbd>L</kbd> legend &nbsp;
+      <kbd>H</kbd> HUD &nbsp;
+      <kbd>[</kbd> / <kbd>]</kbd> speed &nbsp;
+      <kbd>+</kbd> / <kbd>-</kbd> cylinder size (if applicable)
+    </p>
+    <p>Drag the sliders at the bottom for Mach and TAU. Video recording
+       (<kbd>V</kbd>) is a no-op in the browser.</p>
+  </details>
+</main>
+<script>
+  var statusEl = document.getElementById('status');
+  var Module = {
+    canvas: document.getElementById('canvas'),
+    print:    function(t) { statusEl.textContent = t; },
+    printErr: function(t) { statusEl.textContent = t; },
+    setStatus: function(t) { if (t) statusEl.textContent = t; },
+    onRuntimeInitialized: function() {
+      statusEl.textContent = "running (click canvas to focus keyboard)";
+    }
+  };
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

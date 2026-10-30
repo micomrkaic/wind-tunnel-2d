@@ -1,0 +1,103 @@
+.TH LBM_BENCH 1 "October 2026" "wind-tunnel-2d" "User Commands"
+.SH NAME
+lbm_bench \- headless validator for the Schaefer-Turek 2D-2 cylinder benchmark
+.SH SYNOPSIS
+.B lbm_bench
+.RI [ res "...] [" steps=N ]
+.SH DESCRIPTION
+.B lbm_bench
+is the headless validator. No window, no sliders, only numbers. It
+implements the Schaefer-Turek 2D-2 laminar-cylinder benchmark (channel
+2.2 m by 0.41 m, cylinder D = 0.1 m deliberately 0.005 m off-axis, Re =
+100) with the full validated solver stack:
+.IP \[bu] 2
+TRT collision (omega_p from viscosity, omega_m from the magic parameter
+Lambda = 3/16, decoupling the wall location from viscosity);
+.IP \[bu]
+Bouzidi interpolated bounce-back with analytic q-fractions against the
+exact circle (2nd-order curved wall);
+.IP \[bu]
+Guo non-equilibrium-extrapolation in/outflow (2nd-order BCs);
+.IP \[bu]
+q-consistent Mei-Luo-Shyy momentum exchange for Cd and Cl;
+.IP \[bu]
+Welch-windowed FFT (sample floor + window cross-check) for Strouhal.
+.PP
+Reference values at Re = 100: St = 0.295-0.305, Cd = 3.22-3.24, Cl_amp
+= 1.0.
+.SH ARGUMENTS
+.TP
+.IR res "..."
+One or more resolution values (nodes across the cylinder diameter).
+Common ladder:
+.BR "20 40 80" .
+.TP
+.BR steps=N
+Explicit step chunk size for a single call. Useful under short call
+limits; see
+.B CHECKPOINTING
+below. Default: run until the gate is satisfied.
+.SH ENVIRONMENT
+.TP
+.B LB_VERBOSE=1
+Print per-chunk progress (step count, period estimate, gate state).
+.TP
+.B LB_RESULTS=path
+Persist each resolution's final (res, nx, ny, Re, St, Cd, Cl) to a file
+for later assembly.
+.TP
+.B LB_ASSEMBLE=1
+With
+.BR LB_RESULTS ,
+print the assembled convergence table on exit; with three or more
+resolutions, print a Richardson extrapolation (
+.IR f_ext ,
+error bar, observed order
+.IR p )
+across the three finest, with non-monotone series explicitly flagged.
+.SH CHECKPOINTING
+State dumps to
+.BI /tmp/lbm_ckpt_ res .bin
+after each chunk and resumes next call. Delete the file to restart that
+resolution. This exists for sandboxes with short call limits; on normal
+hardware you launch
+.B lbm_bench
+once and wait.
+.SH EXAMPLES
+.PP
+Standard convergence ladder:
+.PP
+.RS
+.B ./lbm_bench 20 40
+.RE
+.PP
+Three-resolution ladder with persistence, then Richardson:
+.PP
+.RS
+.B LB_RESULTS=conv.txt ./lbm_bench 20 40 80
+.br
+.B LB_ASSEMBLE=1 LB_RESULTS=conv.txt ./lbm_bench 20
+.RE
+.PP
+Resume a long res=80 run across short calls:
+.PP
+.RS
+.B rm /tmp/lbm_ckpt_80.bin   # start fresh
+.br
+.B ./lbm_bench 80 steps=5000
+.br
+.B ./lbm_bench 80 steps=5000   # resumes until the gate fires
+.RE
+.SH FILES
+.TP
+.BI /tmp/lbm_ckpt_ res .bin
+Checkpoint file. Safe to delete.
+.SH SEE ALSO
+.BR wind_tunnel (1),
+.BR lbm_tunnel (1),
+.BR lbm_pro (1)
+.SH NOTES
+Validation measurements at res = 40 on the project author's machine (6
+threads):
+.B St = 0.3017, Cd = 3.215, Cl_amp = 1.008,
+within 1% of reference on all three; |dSt| 20->40 = 0.49%.

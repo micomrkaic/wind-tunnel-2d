@@ -1,0 +1,84 @@
+.TH LBM_TUNNEL 1 "October 2026" "wind-tunnel-2d" "User Commands"
+.SH NAME
+lbm_tunnel \- 2D lattice-Boltzmann wind tunnel (BGK, pedagogical)
+.SH SYNOPSIS
+.B lbm_tunnel
+.SH DESCRIPTION
+.B lbm_tunnel
+is the lattice-Boltzmann companion to
+.BR wind_tunnel (1):
+same geometry, same obstacles, same SDL shell, deliberately different
+solver. State is the D2Q9 distribution
+.IR "f_i(x,t)" ;
+collide is single-relaxation-time BGK, stream is pull-scheme with halfway
+bounce-back on the solid mask. Viscosity is set by the relaxation time
+.RI "nu = c_s^2 (tau \- 1/2)."
+.PP
+This solver is faithful only in the weakly-compressible subsonic regime.
+It is stable through about Mach 0.30 on the cylinder and diverges past Mach
+0.40, which is the well-known BGK stability ceiling.
+.B That failure is the pedagogical point:
+run both this and
+.BR wind_tunnel (1)
+on the same low-Mach cylinder (they agree), then raise the Mach on each
+and watch the LBM fail where the particles keep working.
+.PP
+For an interactive solver that does
+.I not
+have that ceiling at the same tolerance, see
+.BR lbm_pro (1).
+For headless benchmark validation, see
+.BR lbm_bench (1).
+.SH CONTROLS
+Keyboard controls track
+.BR wind_tunnel (1)
+where they map
+.RB ( "SPACE R G O +/\(mi 0 C [ ] L H Q" ).
+LBM-specific:
+.TP
+.B F
+Toggle speed vs vorticity colouring (the Karman street is far clearer in
+vorticity).
+.TP
+.B P
+Arm a transient symmetry-breaking seed behind the cylinder; a perfectly
+symmetric noise-free LBM does not spontaneously shed. Expires in ~400
+steps; the HUD shows
+.B SEED ON
+then
+.BR "SEED SPENT" .
+.TP
+.B V
+Toggle MP4 recording (writes
+.BR lbm_tunnel_<timestamp>.mp4 ).
+.TP
+.B "up / down arrow"
+Fine-adjust the Mach slider from the keyboard.
+.TP
+.B "Mouse (drag)"
+Two live sliders: INLET MACH (0-0.55) and TAU (0.51-1.50). Releasing a
+slider re-initialises the lattice cleanly from the new parameters.
+.SH ENVIRONMENT
+Headless mode (same conventions as the MD):
+.TP
+.B LB_SELFTEST=1
+Run headless.
+.TP
+.B "LB_STEPS LB_GEOM LB_OBS LB_MACH LB_TAU LB_PERTURB"
+Overrides. See
+.BR wind_tunnel (1).
+.SH EXAMPLES
+.PP
+.RS
+.B ./lbm_tunnel
+.RE
+.PP
+Headless Mach-ceiling probe (expect DIVERGED past about 0.40):
+.PP
+.RS
+.B LB_SELFTEST=1 LB_MACH=0.45 LB_STEPS=5000 ./lbm_tunnel
+.RE
+.SH SEE ALSO
+.BR wind_tunnel (1),
+.BR lbm_pro (1),
+.BR lbm_bench (1)
