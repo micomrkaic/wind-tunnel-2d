@@ -231,3 +231,6 @@ clean:
 	rm -f $(TARGET) $(LBM) $(PRO) $(BENCH)
 
 .PHONY: all lbm lbm-pro clean selftest lbm-selftest lbm-bench lbm-bench-run bench compare omp-check lbm-regress lbm-regress-baseline lbm-scaling install uninstall wasm wasm-clean
+
+# emscripten musl needs this to expose clock_gettime/CLOCK_MONOTONIC
+EM_CFLAGS += -D_POSIX_C_SOURCE=200112L
